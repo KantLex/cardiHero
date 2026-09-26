@@ -1260,9 +1260,12 @@
 
   function resize() {
     const c = UI.canvas;
-    const sw = window.innerWidth, sh = window.innerHeight;
-    let s = Math.min(sw / W, sh / H);
-    if (s >= 2) s = Math.floor(s); // integer scaling keeps pixels crisp
+    const el = document.documentElement;
+    const sw = el.clientWidth || window.innerWidth, sh = el.clientHeight || window.innerHeight;
+    let s = Math.min(sw / W, sh / H) * 0.98;
+    // Snap to a whole-number scale (perfectly even pixels) only when it barely shrinks the view.
+    const whole = Math.floor(s);
+    if (whole >= 1 && whole / s > 0.94) s = whole;
     c.style.width = Math.floor(W * s) + 'px';
     c.style.height = Math.floor(H * s) + 'px';
   }
@@ -1277,6 +1280,7 @@
     c.addEventListener('contextmenu', (e) => e.preventDefault());
     window.addEventListener('keydown', onKey);
     window.addEventListener('resize', resize);
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(document.documentElement);
     resize();
     requestAnimationFrame(frame);
   }
